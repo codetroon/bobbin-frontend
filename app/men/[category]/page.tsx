@@ -1,58 +1,45 @@
 import { ProductCard } from "@/components/product-card";
+import { apiClient } from "@/lib/api";
+import type { Category, Product } from "@/lib/types";
 import { notFound } from "next/navigation";
 
 export const revalidate = 60;
 
-type Product = {
-  id: number;
-  documentId: string;
-  title: string;
-  description: string;
-  price: number;
-  code: string;
-  cloth_type: string;
-  discount_percent: string;
-  stock: number;
-  product_id: string;
-  main_image: Array<any>;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-  details?: string;
-  materials?: string;
-};
-
-type CategoryData = {
-  id: number;
-  documentId: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  products: Product[];
-};
-
-async function getCategoryBySlug(slug: string): Promise<CategoryData | null> {
+async function getCategoryByName(
+  slug: string
+): Promise<{ category: Category; products: Product[] } | null> {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/categories?filters[slug][$eq]=${slug}&populate=products.main_image`,
-      { next: { revalidate: 60 } }
+    // Get all categories
+    const categoriesResponse = await apiClient.getPublicCategories();
+    const categories = categoriesResponse.data || [];
+
+    // Find category by slug (name converted to lowercase with dashes)
+    const category = categories.find(
+      (cat: Category) => cat.name.toLowerCase().replace(/\s+/g, "-") === slug
     );
-    const { data } = await response.json();
-    return data?.[0] || null;
+
+    if (!category) return null;
+
+    // Get products for this category
+    const productsResponse = await apiClient.getPublicProducts({
+      categoryId: category.id,
+      limit: 100,
+    });
+
+    return {
+      category,
+      products: productsResponse.data || [],
+    };
   } catch (error) {
     console.error("Error fetching category:", error);
     return null;
   }
 }
 
-async function getAllCategories() {
+async function getAllCategories(): Promise<Category[]> {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/categories`,
-      { next: { revalidate: 60 } }
-    );
-    const { data } = await response.json();
-    return data || [];
+    const response = await apiClient.getPublicCategories();
+    return response.data || [];
   } catch (error) {
     console.error("Error fetching categories:", error);
     return [];
@@ -61,7 +48,11 @@ async function getAllCategories() {
 
 export async function generateStaticParams() {
   const categories = await getAllCategories();
-  return categories.map((cat: CategoryData) => ({ category: cat.slug })) || [];
+  return (
+    categories.map((cat: Category) => ({
+      category: cat.name.toLowerCase().replace(/\s+/g, "-"),
+    })) || []
+  );
 }
 
 type PageProps = {
@@ -71,13 +62,13 @@ type PageProps = {
 };
 
 export default async function CategoryPage({ params }: PageProps) {
-  const category = await getCategoryBySlug(params.category);
+  const result = await getCategoryByName(params.category);
 
-  if (!category) {
+  if (!result) {
     notFound();
   }
 
-  const products = category.products || [];
+  const { category, products } = result;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -93,9 +84,6 @@ export default async function CategoryPage({ params }: PageProps) {
         </nav>
 
         <h1 className="text-3xl font-bold md:text-4xl">{category.name}</h1>
-        {category.description && (
-          <p className="mt-2 text-muted-foreground">{category.description}</p>
-        )}
         <p className="mt-2 text-sm text-muted-foreground">
           {products.length} {products.length === 1 ? "product" : "products"}
         </p>

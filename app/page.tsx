@@ -1,43 +1,80 @@
-import { HeroBanner } from "@/components/hero-banner";
 import { ProductCard } from "@/components/product-card";
 import { Button } from "@/components/ui/button";
-import type { Banner, Product } from "@/lib/supabase";
-import { supabase } from "@/lib/supabase";
+import { apiClient } from "@/lib/api";
+import type { Product } from "@/lib/types";
 import Link from "next/link";
 
 export const revalidate = 60;
 
-async function getActiveBanner(): Promise<Banner | null> {
-  const { data } = await supabase
-    .from("banners")
-    .select("*")
-    .eq("active", true)
-    .maybeSingle();
-
-  return data;
-}
-
 async function getFeaturedProducts(): Promise<Product[]> {
-  const { data } = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/products?populate=main_image`
-  ).then((res) => res.json());
-  return data || [];
+  try {
+    const response = await apiClient.getPublicProducts({ limit: 8 });
+    return response.data || [];
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return [];
+  }
 }
 
 export default async function HomePage() {
-  const [banner, products] = await Promise.all([
-    getActiveBanner(),
-    getFeaturedProducts(),
-  ]);
+  const products = await getFeaturedProducts();
 
   return (
     <div>
-      {banner && <HeroBanner banner={banner} />}
+      {/* Hero Banner */}
+      <section className="relative bg-gradient-to-r from-bobbinText to-accent py-20 md:py-32">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2">
+            <div className="text-white">
+              <h1 className="mb-4 text-4xl font-bold md:text-5xl lg:text-6xl">
+                Elevate Your Style
+              </h1>
+              <p className="mb-8 text-lg text-gray-100 md:text-xl">
+                Discover premium essentials crafted for the modern gentleman.
+                Quality that speaks, comfort that lasts.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <Link href="/men/t-shirt">
+                  <Button
+                    size="lg"
+                    className="bg-white text-bobbinText hover:bg-gray-100"
+                  >
+                    Shop Now
+                  </Button>
+                </Link>
+                <Link href="/about">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-white text-white hover:bg-white/10"
+                  >
+                    Learn More
+                  </Button>
+                </Link>
+              </div>
+            </div>
+            <div className="hidden md:block">
+              <div className="relative h-[400px] w-full">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="h-40 w-40 rounded-lg bg-white/10 backdrop-blur-sm"></div>
+                    <div className="h-40 w-40 rounded-lg bg-white/20 backdrop-blur-sm"></div>
+                    <div className="h-40 w-40 rounded-lg bg-white/20 backdrop-blur-sm"></div>
+                    <div className="h-40 w-40 rounded-lg bg-white/10 backdrop-blur-sm"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className="container mx-auto px-4 py-16">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold">Featured Products</h2>
+            <h2 className="text-3xl font-bold text-bobbinText">
+              Featured Products
+            </h2>
             <p className="mt-2 text-muted-foreground">
               Discover our latest collection of premium essentials
             </p>
@@ -82,8 +119,10 @@ export default async function HomePage() {
                   />
                 </svg>
               </div>
-              <h3 className="mb-2 text-lg font-semibold">Premium Quality</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="mb-2 text-lg font-semibold text-bobbinText">
+                Premium Quality
+              </h3>
+              <p className="text-sm text-muted-foreground text-white">
                 Crafted with the finest materials for lasting comfort
               </p>
             </div>
@@ -105,8 +144,10 @@ export default async function HomePage() {
                   />
                 </svg>
               </div>
-              <h3 className="mb-2 text-lg font-semibold">Fast Delivery</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="mb-2 text-lg font-semibold text-bobbinText">
+                Fast Delivery
+              </h3>
+              <p className="text-sm text-muted-foreground text-white">
                 Quick and reliable shipping across Bangladesh
               </p>
             </div>
@@ -128,8 +169,10 @@ export default async function HomePage() {
                   />
                 </svg>
               </div>
-              <h3 className="mb-2 text-lg font-semibold">Customer Care</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="mb-2 text-lg font-semibold text-bobbinText">
+                Customer Care
+              </h3>
+              <p className="text-sm text-muted-foreground text-white">
                 Dedicated support to ensure your satisfaction
               </p>
             </div>

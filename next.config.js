@@ -4,17 +4,14 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**',
-      },
-      {
-        protocol: 'http',
-        hostname: '**',
-      },
-    ],
+        hostname: 'ik.imagekit.io',
+        port: '',
+        pathname: '/**'
+      }
+    ]
   },
   experimental: {
     serverActions: true,

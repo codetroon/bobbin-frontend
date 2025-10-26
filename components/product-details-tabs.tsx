@@ -1,28 +1,21 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Product, ProductWithDetails } from "@/lib/supabase";
+import type { Product } from "@/lib/types";
 
 type ProductDetailsTabsProps = {
-  product: ProductWithDetails | Product;
+  product: Product;
 };
 
 export function ProductDetailsTabs({ product }: ProductDetailsTabsProps) {
-  // Handle both Product and ProductWithDetails types
-  const productDescription =
-    "description" in product ? product.description : "";
-  const productDetails = "details" in product ? product.details : "";
-  const productMaterials = "materials" in product ? product.materials : "";
+  const productDescription = product.description || "";
+  const productDetails = product.details || "";
+  const productMaterials = product.materials || [];
 
-  // Split details and materials by "-" to create bullet points
+  // Split details by "-" to create bullet points
   const details: string[] =
     productDetails && typeof productDetails === "string"
       ? productDetails.split("-").filter((item: string) => item.trim() !== "")
-      : [];
-
-  const materials: string[] =
-    productMaterials && typeof productMaterials === "string"
-      ? productMaterials.split("-").filter((item: string) => item.trim() !== "")
       : [];
 
   return (
@@ -73,10 +66,10 @@ export function ProductDetailsTabs({ product }: ProductDetailsTabsProps) {
 
         <TabsContent value="materials" className="py-6">
           <ul className="space-y-3">
-            {materials.map((material: string, index: number) => (
+            {productMaterials.map((material: string, index: number) => (
               <li key={index} className="flex items-start">
                 <span className="mr-3 mt-1.5 h-1.5 w-1.5 rounded-full bg-foreground flex-shrink-0" />
-                <span className="text-muted-foreground">{material.trim()}</span>
+                <span className="text-muted-foreground">{material}</span>
               </li>
             ))}
           </ul>

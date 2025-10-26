@@ -25,19 +25,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { apiClient } from "@/lib/api";
 import { useCartStore } from "@/lib/store";
+import type { Category } from "@/lib/types";
 import { Menu, ShoppingBag } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-
-type Category = {
-  id: number;
-  documentId: string;
-  name: string;
-  slug: string;
-  description: string | null;
-};
 
 export function Navbar() {
   const itemCount = useCartStore((state) => state.getItemCount());
@@ -48,11 +42,8 @@ export function Navbar() {
   useEffect(() => {
     async function fetchCategories() {
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/categories`
-        );
-        const { data } = await response.json();
-        setCategories(data || []);
+        const response = await apiClient.getPublicCategories();
+        setCategories(response.data || []);
       } catch (error) {
         console.error("Error fetching categories:", error);
       } finally {
@@ -64,7 +55,7 @@ export function Navbar() {
   }, []);
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="sticky top-0 z-50 w-full border-b backdrop-blur ">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/" className="text-2xl font-bold tracking-tight">
           <Image src={bobbinLogo} alt="Bobbin Logo" width={100} height={30} />
@@ -96,7 +87,7 @@ export function Navbar() {
                     categories.map((category) => (
                       <li key={category.id}>
                         <Link
-                          href={`/men/${category.slug}`}
+                          href={`/men/${category.name.toLowerCase().replace(/\s+/g, "-")}`}
                           legacyBehavior
                           passHref
                         >
@@ -181,7 +172,7 @@ export function Navbar() {
                           categories.map((category) => (
                             <Link
                               key={category.id}
-                              href={`/men/${category.slug}`}
+                              href={`/men/${category.name.toLowerCase().replace(/\s+/g, "-")}`}
                               className="text-base hover:text-accent-foreground transition-colors py-2"
                               onClick={() => setMobileMenuOpen(false)}
                             >

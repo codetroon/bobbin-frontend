@@ -1,15 +1,14 @@
-import './globals.css';
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import { Navbar } from '@/components/navbar';
-import { Footer } from '@/components/footer';
-import { Toaster } from '@/components/ui/sonner';
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { RootLayoutContent } from "./root-layout-content";
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'bobbin - Premium Fashion for Men',
-  description: 'Discover premium fashion essentials crafted for the modern gentleman. Shop T-shirts, Punjabi, Joggers, and Hoodies.',
+  title: "bobbin - Premium Fashion for Men",
+  description:
+    "Discover premium fashion essentials crafted for the modern gentleman. Shop T-shirts, Punjabi, Joggers, and Hoodies.",
 };
 
 export default function RootLayout({
@@ -19,11 +18,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <Navbar />
-        <main className="min-h-screen">{children}</main>
-        <Footer />
-        <Toaster />
+      <body className={inter.className + " bg-bobbinBg"}>
+        <RootLayoutContent>{children}</RootLayoutContent>
       </body>
     </html>
   );

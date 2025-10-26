@@ -1,10 +1,17 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import type { ProductImage } from "@/lib/supabase";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
+
+type ProductImage = {
+  id: string;
+  product_id: string;
+  url: string;
+  alt: string | null;
+  order: number;
+};
 
 type ProductGalleryProps = {
   images: ProductImage[];

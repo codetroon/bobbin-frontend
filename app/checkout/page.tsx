@@ -49,38 +49,40 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/orders`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            data: {
-              customer_name: formData.name,
-              address: formData.address,
-              contact: formData.contact,
-              products: items.map((item) => ({
-                productId: item.productId,
-                size: item.size,
-                qty: item.quantity,
-                unitPrice: item.price,
-              })),
-              total,
+      // Note: Backend currently supports single product per order
+      // For multiple items, we create separate orders
+      const orderPromises = items.map(async (item) => {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/orders`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
-          }),
-        }
-      );
+            body: JSON.stringify({
+              customerName: formData.name,
+              address: formData.address,
+              contactNumber: formData.contact,
+              productId: item.productId,
+              totalPrice: item.price * item.quantity,
+              status: "pending",
+            }),
+          }
+        );
 
-      if (response.ok) {
-        const { data } = await response.json();
-        clearCart();
-        router.push(`/order-success?id=${data.documentId}`);
-      } else {
-        toast.error("Failed to place order. Please try again.");
-      }
+        if (!response.ok) {
+          throw new Error("Failed to create order");
+        }
+
+        return response.json();
+      });
+
+      await Promise.all(orderPromises);
+      clearCart();
+      toast.success("Order placed successfully!");
+      router.push(`/order-success`);
     } catch (error) {
+      console.error("Order error:", error);
       toast.error("An error occurred. Please try again.");
     } finally {
       setLoading(false);

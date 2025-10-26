@@ -2,50 +2,48 @@ import { ProductCard } from "@/components/product-card";
 import { ProductDetailsTabs } from "@/components/product-details-tabs";
 import { ProductGallery } from "@/components/product-gallery";
 import { ProductInfo } from "@/components/product-info";
-import type { Product } from "@/lib/supabase";
+import { apiClient } from "@/lib/api";
+import type { Product } from "@/lib/types";
 import { notFound } from "next/navigation";
 
 export const revalidate = 60;
 
 export async function generateStaticParams() {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products`,
-      { next: { revalidate: 60 } }
-    );
-    const { data: products } = await response.json();
+    const response = await apiClient.getPublicProducts({ limit: 100 });
+    const products = response.data || [];
 
-    return (
-      products?.map((product: Product) => ({ slug: product.documentId })) || []
-    );
+    return products.map((product: Product) => ({ slug: product.id })) || [];
   } catch (error) {
     console.error("Error generating static params:", error);
     return [];
   }
 }
 
-async function getProduct(documentId: string): Promise<Product | null> {
+async function getProduct(id: string): Promise<Product | null> {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products/${documentId}?populate=main_image`,
-      { next: { revalidate: 60 } }
-    );
-    const { data } = await response.json();
-    return data || null;
+    const response = await apiClient.getPublicProduct(id);
+    return response.data || null;
   } catch (error) {
     console.error("Error fetching product:", error);
     return null;
   }
 }
 
-async function getRelatedProducts(): Promise<Product[]> {
+async function getRelatedProducts(
+  categoryId: string,
+  currentId: string
+): Promise<Product[]> {
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/products?populate=main_image&pagination[limit]=4`,
-      { next: { revalidate: 60 } }
+    const response = await apiClient.getPublicProducts({
+      categoryId,
+      limit: 5,
+    });
+    // Filter out current product
+    const products = (response.data || []).filter(
+      (p: Product) => p.id !== currentId
     );
-    const { data } = await response.json();
-    return data || [];
+    return products.slice(0, 4);
   } catch (error) {
     console.error("Error fetching related products:", error);
     return [];
@@ -63,25 +61,22 @@ export default async function ProductPage({
     notFound();
   }
 
-  const relatedProducts = await getRelatedProducts();
+  const relatedProducts = await getRelatedProducts(
+    product.categoryId,
+    product.id
+  );
 
-  // Get main image URL
-  const mainImage =
-    (product.main_image?.[0] as any)?.formats?.medium?.url ||
-    (product.main_image?.[0] as any)?.url;
-  const imageUrl = mainImage
-    ? `${process.env.NEXT_PUBLIC_BASE_URL}${mainImage}`
-    : "";
+  // Get main image URL from images array
+  const imageUrl =
+    product.images && product.images.length > 0 ? product.images[0] : "";
 
   // Transform product images for gallery
   const galleryImages =
-    product.main_image?.map((img: any, index: number) => ({
-      id: `${product.documentId}-${index}`,
-      product_id: product.documentId,
-      url: `${process.env.NEXT_PUBLIC_BASE_URL}${
-        img.formats?.medium?.url || img.url
-      }`,
-      alt: product.title,
+    product.images?.map((url: string, index: number) => ({
+      id: `${product.id}-${index}`,
+      product_id: product.id,
+      url: url,
+      alt: product.name,
       order: index,
     })) || [];
 
@@ -95,14 +90,14 @@ export default async function ProductPage({
           <span>/</span>
           <span>Men</span>
           <span>/</span>
-          <span className="text-foreground">{product.title}</span>
+          <span className="text-foreground">{product.name}</span>
         </nav>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-          <ProductGallery images={galleryImages} productName={product.title} />
+          <ProductGallery images={galleryImages} productName={product.name} />
           <div>
-            <ProductInfo product={product as any} />
-            <ProductDetailsTabs product={product as any} />
+            <ProductInfo product={product} />
+            <ProductDetailsTabs product={product} />
           </div>
         </div>
       </div>
