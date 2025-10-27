@@ -22,11 +22,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { apiClient } from "@/lib/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Plus, X } from "lucide-react";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { MultiImageUpload } from "./multi-image-upload";
 
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required"),
@@ -62,7 +62,6 @@ export function ProductForm({
   const [isLoading, setIsLoading] = useState(false);
   const [newMaterial, setNewMaterial] = useState("");
   const [newColor, setNewColor] = useState("");
-  const [newImage, setNewImage] = useState("");
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -82,6 +81,23 @@ export function ProductForm({
   useEffect(() => {
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    if (productData) {
+      // Reset form with product data when editing
+      form.reset({
+        name: productData.name || "",
+        productCode: productData.productCode || "",
+        description: productData.description || "",
+        price: productData.price || 0,
+        details: productData.details || "",
+        categoryId: productData.categoryId || "",
+        materials: productData.materials || [],
+        colors: productData.colors || [],
+        images: productData.images || [],
+      });
+    }
+  }, [productData, form]);
 
   const fetchCategories = async () => {
     try {
@@ -142,19 +158,17 @@ export function ProductForm({
     );
   };
 
-  const addImage = () => {
-    if (newImage.trim()) {
-      const currentImages = form.getValues("images");
-      form.setValue("images", [...currentImages, newImage.trim()]);
-      setNewImage("");
-    }
+  const handleImageUpload = (newUrls: string[]) => {
+    const currentImages = form.getValues("images");
+    form.setValue("images", [...currentImages, ...newUrls]);
+    toast.success(`${newUrls.length} image(s) added successfully`);
   };
 
-  const removeImage = (index: number) => {
+  const removeImage = (url: string) => {
     const currentImages = form.getValues("images");
     form.setValue(
       "images",
-      currentImages.filter((_, i) => i !== index)
+      currentImages.filter((img) => img !== url)
     );
   };
 
@@ -370,53 +384,12 @@ export function ProductForm({
 
         {/* Images */}
         <div className="space-y-3">
-          <FormLabel>Images (URLs)</FormLabel>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Add image URL"
-              value={newImage}
-              onChange={(e) => setNewImage(e.target.value)}
-              onKeyPress={(e) =>
-                e.key === "Enter" && (e.preventDefault(), addImage())
-              }
-            />
-            <Button type="button" onClick={addImage} size="sm">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-          {images.length > 0 && (
-            <div className="space-y-2">
-              {images.map((image, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 p-2 bg-gray-50 rounded border"
-                >
-                  <div className="relative w-16 h-16 flex-shrink-0">
-                    <Image
-                      src={image}
-                      alt={`Product ${index + 1}`}
-                      fill
-                      className="object-cover rounded"
-                      onError={(e) => {
-                        e.currentTarget.src =
-                          'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
-                      }}
-                    />
-                  </div>
-                  <span className="flex-1 text-sm text-gray-600 truncate">
-                    {image}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => removeImage(index)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+          <FormLabel>Product Images</FormLabel>
+          <MultiImageUpload
+            onUploadComplete={handleImageUpload}
+            existingImages={images}
+            onRemoveExisting={removeImage}
+          />
         </div>
 
         {/* Form Actions */}

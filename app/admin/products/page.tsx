@@ -1,6 +1,7 @@
 "use client";
 
 import { ProductForm } from "@/components/admin/product-form";
+import { SizeManager } from "@/components/admin/size-manager";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -26,7 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { apiClient } from "@/lib/api";
-import { Edit, Plus, Search, Trash2 } from "lucide-react";
+import { Edit, PackageOpen, Plus, Search, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -37,9 +38,12 @@ interface Product {
   productCode: string;
   description?: string;
   price: number;
+  details?: string;
+  materials?: string[];
+  colors?: string[];
   images: string[];
   categoryId: string;
-  category: { name: string };
+  category?: { id: string; name: string };
   createdAt: string;
 }
 
@@ -49,6 +53,9 @@ export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isSizeDialogOpen, setIsSizeDialogOpen] = useState(false);
+  const [selectedProductForSizes, setSelectedProductForSizes] =
+    useState<Product | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -56,10 +63,19 @@ export default function ProductsPage() {
 
   const fetchProducts = async () => {
     try {
+      setIsLoading(true);
       const response = await apiClient.getProducts({ limit: 100 });
-      setProducts(response.data?.data || []);
-    } catch (error) {
-      toast.error("Failed to fetch products");
+      console.log("Products response:", response);
+
+      // Backend returns { success, message, data: { meta, data } }
+      // So products are at response.data.data
+      const productsData = response.data?.data || [];
+      console.log("Products data:", productsData);
+
+      setProducts(productsData);
+    } catch (error: any) {
+      console.error("Error fetching products:", error);
+      toast.error(error.message || "Failed to fetch products");
     } finally {
       setIsLoading(false);
     }
@@ -72,13 +88,22 @@ export default function ProductsPage() {
       await apiClient.deleteProduct(id);
       toast.success("Product deleted successfully");
       fetchProducts();
-    } catch (error) {
-      toast.error("Failed to delete product");
+    } catch (error: any) {
+      console.error("Error deleting product:", error);
+      toast.error(error.message || "Failed to delete product");
     }
   };
 
   const handleEditProduct = (product: Product) => {
-    setEditingProduct(product);
+    // Transform product data to match form expectations
+    const formattedProduct: Product = {
+      ...product,
+      categoryId: product.categoryId || product.category?.id || "",
+      materials: product.materials || [],
+      colors: product.colors || [],
+      images: product.images || [],
+    };
+    setEditingProduct(formattedProduct);
     setIsDialogOpen(true);
   };
 
@@ -90,6 +115,16 @@ export default function ProductsPage() {
   const handleFormSuccess = () => {
     handleCloseDialog();
     fetchProducts();
+  };
+
+  const handleManageSizes = (product: Product) => {
+    setSelectedProductForSizes(product);
+    setIsSizeDialogOpen(true);
+  };
+
+  const handleCloseSizeDialog = () => {
+    setIsSizeDialogOpen(false);
+    setSelectedProductForSizes(null);
   };
 
   const filteredProducts = products.filter(
@@ -233,7 +268,16 @@ export default function ProductsPage() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => handleManageSizes(product)}
+                        title="Manage Sizes"
+                      >
+                        <PackageOpen className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleEditProduct(product)}
+                        title="Edit Product"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -242,6 +286,7 @@ export default function ProductsPage() {
                         size="sm"
                         onClick={() => handleDeleteProduct(product.id)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        title="Delete Product"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -263,6 +308,27 @@ export default function ProductsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Size Management Dialog */}
+      <Dialog open={isSizeDialogOpen} onOpenChange={setIsSizeDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Manage Sizes - {selectedProductForSizes?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Add, update, or remove sizes and manage stock levels for this
+              product
+            </DialogDescription>
+          </DialogHeader>
+          {selectedProductForSizes && (
+            <SizeManager productId={selectedProductForSizes.id} />
+          )}
+          <div className="flex justify-end mt-4">
+            <Button onClick={handleCloseSizeDialog}>Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
