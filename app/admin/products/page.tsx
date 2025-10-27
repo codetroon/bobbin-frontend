@@ -69,7 +69,7 @@ export default function ProductsPage() {
 
       // Backend returns { success, message, data: { meta, data } }
       // So products are at response.data.data
-      const productsData = response.data?.data || [];
+      const productsData = response?.data || [];
       console.log("Products data:", productsData);
 
       setProducts(productsData);

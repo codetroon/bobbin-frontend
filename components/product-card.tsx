@@ -40,13 +40,13 @@ export function ProductCard({ product }: ProductCardProps) {
             <h3 className="line-clamp-1 font-semibold text-bobbinText">
               {product.name}
             </h3>
-            <p className="text-sm text-muted-foreground line-clamp-1">
+            <p className="text-sm text-black/60 line-clamp-1">
               {product.description || "Premium quality product"}
             </p>
           </div>
           <div className="flex w-full items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-bobbinText">
+              <span className="text-lg font-bold text-bobbinBg">
                 ৳{product.price.toFixed(2)}
               </span>
             </div>

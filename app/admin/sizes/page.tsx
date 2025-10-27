@@ -127,7 +127,7 @@ export default function SizesPage() {
   const fetchProducts = async () => {
     try {
       const response = await apiClient.getProducts({ limit: 1000 });
-      setProducts(response.data?.data || []);
+      setProducts(response?.data || []);
     } catch (error) {
       console.error("Failed to fetch products:", error);
     }

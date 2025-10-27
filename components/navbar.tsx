@@ -55,7 +55,7 @@ export function Navbar() {
   }, []);
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b backdrop-blur ">
+    <nav className="sticky top-0 z-50 w-full border-b backdrop-blur">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/" className="text-2xl font-bold tracking-tight">
           <Image src={bobbinLogo} alt="Bobbin Logo" width={100} height={30} />

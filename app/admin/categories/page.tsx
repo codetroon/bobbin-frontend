@@ -35,6 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { apiClient } from "@/lib/api";
+import { Product } from "@/lib/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Edit, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -47,9 +48,7 @@ interface Category {
   name: string;
   createdAt: string;
   updatedAt: string;
-  _count?: {
-    Product: number;
-  };
+  Product: Product[];
 }
 
 const categorySchema = z.object({
@@ -237,7 +236,7 @@ export default function CategoriesPage() {
                   <TableCell className="font-medium">{category.name}</TableCell>
                   <TableCell>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {category._count?.Product || 0} products
+                      {category.Product.length || 0} products
                     </span>
                   </TableCell>
                   <TableCell className="text-sm text-gray-500">
@@ -261,8 +260,7 @@ export default function CategoriesPage() {
                         onClick={() => handleDeleteCategory(category.id)}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         disabled={Boolean(
-                          category._count?.Product &&
-                            category._count.Product > 0
+                          category.Product.length && category.Product.length > 0
                         )}
                       >
                         <Trash2 className="h-4 w-4" />
