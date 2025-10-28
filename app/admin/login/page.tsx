@@ -204,11 +204,6 @@ export default function AdminLoginPage() {
             </Form>
           </CardContent>
         </Card>
-
-        <div className="text-center text-sm text-gray-600">
-          <p>Default credentials for testing:</p>
-          <p className="font-mono mt-1">admin@bobbin.com / admin123</p>
-        </div>
       </div>
     </div>
   );

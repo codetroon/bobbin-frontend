@@ -17,6 +17,7 @@ import { useState } from "react";
 export function CartDrawer({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const items = useCartStore((state) => state.items);
+  console.log(items);
   const total = useCartStore((state) => state.getTotal());
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const removeItem = useCartStore((state) => state.removeItem);

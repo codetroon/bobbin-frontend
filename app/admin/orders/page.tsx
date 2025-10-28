@@ -1,5 +1,6 @@
 "use client";
 
+import { OrderInvoice } from "@/components/admin/order-invoice";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -24,7 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { apiClient } from "@/lib/api";
-import { Eye, Package, Truck } from "lucide-react";
+import { Eye, FileText, Package, RefreshCw, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -33,12 +34,21 @@ interface Order {
   customerName: string;
   address: string;
   contactNumber: string;
+  productId: string;
   totalPrice: number;
   status: string;
   createdAt: string;
+  updatedAt: string;
   products: {
+    id: string;
     name: string;
     productCode: string;
+    price: number;
+    description?: string;
+    category?: {
+      id: string;
+      name: string;
+    };
   };
 }
 
@@ -70,6 +80,8 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -77,10 +89,18 @@ export default function OrdersPage() {
 
   const fetchOrders = async () => {
     try {
+      setIsLoading(true);
       const response = await apiClient.getOrders({ limit: 100 });
-      setOrders(response.data?.data || []);
-    } catch (error) {
-      toast.error("Failed to fetch orders");
+      console.log("Orders response:", response);
+
+      // Backend returns { success, message, data: orders[] }
+      const ordersData = response.data || [];
+      console.log("Orders data:", ordersData);
+
+      setOrders(ordersData);
+    } catch (error: any) {
+      console.error("Error fetching orders:", error);
+      toast.error(error.message || "Failed to fetch orders");
     } finally {
       setIsLoading(false);
     }
@@ -91,14 +111,25 @@ export default function OrdersPage() {
       await apiClient.updateOrderStatus(orderId, newStatus);
       toast.success("Order status updated successfully");
       fetchOrders();
-    } catch (error) {
-      toast.error("Failed to update order status");
+    } catch (error: any) {
+      console.error("Error updating order status:", error);
+      toast.error(error.message || "Failed to update order status");
     }
   };
 
   const getStatusColor = (status: string) => {
     const statusObj = orderStatuses.find((s) => s.value === status);
     return statusObj?.color || "bg-gray-100 text-gray-800";
+  };
+
+  const handleViewInvoice = (order: Order) => {
+    setSelectedOrder(order);
+    setIsInvoiceOpen(true);
+  };
+
+  const handleCloseInvoice = () => {
+    setIsInvoiceOpen(false);
+    setSelectedOrder(null);
   };
 
   const filteredOrders =
@@ -128,6 +159,17 @@ export default function OrdersPage() {
           </p>
         </div>
         <div className="flex items-center space-x-4">
+          <Button
+            variant="outline"
+            className="flex items-center space-x-2"
+            onClick={fetchOrders}
+            disabled={isLoading}
+          >
+            <RefreshCw
+              className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+            />
+            <span>Refresh</span>
+          </Button>
           <Button variant="outline" className="flex items-center space-x-2">
             <Package className="h-4 w-4" />
             <span>Export Orders</span>
@@ -189,8 +231,24 @@ export default function OrdersPage() {
       {/* Orders Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Orders ({filteredOrders.length})</CardTitle>
-          <CardDescription>Recent orders from your customers</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>
+                {statusFilter === "all"
+                  ? `All Orders (${filteredOrders.length})`
+                  : `${orderStatuses.find((s) => s.value === statusFilter)?.label || ""} Orders (${filteredOrders.length})`}
+              </CardTitle>
+              <CardDescription>
+                Recent orders from your customers
+              </CardDescription>
+            </div>
+            {orders.length > 0 && (
+              <div className="text-sm text-gray-500">
+                Total: {orders.length}{" "}
+                {orders.length === 1 ? "order" : "orders"}
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -222,9 +280,11 @@ export default function OrdersPage() {
                   </TableCell>
                   <TableCell>
                     <div>
-                      <p className="font-medium">{order.products?.name}</p>
+                      <p className="font-medium">
+                        {order.products?.name || "Unknown Product"}
+                      </p>
                       <p className="text-sm text-gray-500">
-                        {order.products?.productCode}
+                        {order.products?.productCode || "N/A"}
                       </p>
                     </div>
                   </TableCell>
@@ -271,9 +331,18 @@ export default function OrdersPage() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => handleViewInvoice(order)}
+                        title="View Invoice"
+                      >
+                        <FileText className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => {
                           toast.info("Order details will be implemented");
                         }}
+                        title="View Details"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -283,6 +352,7 @@ export default function OrdersPage() {
                         onClick={() => {
                           toast.info("Tracking info will be implemented");
                         }}
+                        title="Track Order"
                       >
                         <Truck className="h-4 w-4" />
                       </Button>
@@ -304,6 +374,13 @@ export default function OrdersPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Invoice Dialog */}
+      <OrderInvoice
+        order={selectedOrder}
+        isOpen={isInvoiceOpen}
+        onClose={handleCloseInvoice}
+      />
     </div>
   );
 }
