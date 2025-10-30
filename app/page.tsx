@@ -34,7 +34,7 @@ export default async function HomePage() {
                 Quality that speaks, comfort that lasts.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Link href="/men/t-shirt">
+                <Link href="/products">
                   <Button
                     size="lg"
                     className="bg-white text-bobbinText hover:bg-gray-100"
@@ -46,7 +46,7 @@ export default async function HomePage() {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="border-white text-white hover:bg-white/10"
+                    className="border-white text-black hover:text-white hover:bg-white/10"
                   >
                     Learn More
                   </Button>
@@ -88,7 +88,7 @@ export default async function HomePage() {
         </div>
 
         <div className="mt-12 text-center">
-          <Link href="/men/t-shirt">
+          <Link href="/products">
             <Button
               size="lg"
               className="bg-accent text-accent-foreground hover:bg-accent/90"
@@ -122,7 +122,7 @@ export default async function HomePage() {
               <h3 className="mb-2 text-lg font-semibold text-bobbinText">
                 Premium Quality
               </h3>
-              <p className="text-sm text-muted-foreground text-white">
+              <p className="text-sm text-muted-foreground text-black">
                 Crafted with the finest materials for lasting comfort
               </p>
             </div>
@@ -147,7 +147,7 @@ export default async function HomePage() {
               <h3 className="mb-2 text-lg font-semibold text-bobbinText">
                 Fast Delivery
               </h3>
-              <p className="text-sm text-muted-foreground text-white">
+              <p className="text-sm text-muted-foreground text-black">
                 Quick and reliable shipping across Bangladesh
               </p>
             </div>
@@ -172,7 +172,7 @@ export default async function HomePage() {
               <h3 className="mb-2 text-lg font-semibold text-bobbinText">
                 Customer Care
               </h3>
-              <p className="text-sm text-muted-foreground text-white">
+              <p className="text-sm text-muted-foreground text-black">
                 Dedicated support to ensure your satisfaction
               </p>
             </div>

@@ -21,7 +21,7 @@ export function RootLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-bobbinBg">{children}</main>
+      <main className="min-h-screen">{children}</main>
       <Footer />
       <Toaster />
     </>
