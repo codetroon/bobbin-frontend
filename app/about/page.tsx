@@ -9,18 +9,19 @@ export default function AboutPage() {
 
         <div className="space-y-6 text-muted-foreground">
           <p className="text-lg leading-relaxed">
-            Welcome to bobbin, your destination for premium fashion essentials
-            crafted for the modern gentleman. We believe that quality clothing
-            should be both accessible and exceptional.
-          </p>
-
-          <p className="leading-relaxed">
-            Founded with a passion for timeless style and superior
-            craftsmanship, bobbin curates a carefully selected collection of
-            men&apos;s wear that combines comfort, durability, and contemporary
-            design. From everyday essentials like our premium t-shirts and
-            joggers to special occasion pieces like our elegant punjabis, every
-            item in our collection is chosen with care.
+            Welcome to Bobbin — your trusted destination for premium men&apos;s
+            fashion in Bangladesh. We believe clothing is more than just fabric
+            — it&apos;s confidence, comfort, and craftsmanship combined. Since
+            2019, Bobbin has been creating a complete range of menswear designed
+            for modern lifestyles — from Polos and T-Shirts to Shirts, Hoodies,
+            Jackets, Denims, Twill Pants, Punjabis, and Trousers. Every product
+            is carefully developed in our own production setup — from cutting to
+            stitching — ensuring long-lasting quality and comfort you can feel.
+            Our fabric selection includes a variety of cotton, pique, twill,
+            denim, fleece, and blended materials, crafted to suit
+            Bangladesh&apos;s weather and everyday wear. Whether it&apos;s a
+            weekend casual look, an office day, or a festive occasion, Bobbin
+            brings you versatile essentials for every moment.
           </p>
 
           <h2 className="pt-6 text-2xl font-semibold text-foreground">
@@ -30,26 +31,23 @@ export default function AboutPage() {
           <ul className="space-y-3 pl-6">
             <li className="list-disc">
               <strong className="text-foreground">Premium Quality:</strong> We
-              source only the finest fabrics and materials to ensure lasting
-              comfort and durability.
+              choose only the finest fabrics and trims for unmatched comfort and
+              durability.
             </li>
             <li className="list-disc">
-              <strong className="text-foreground">Modern Design:</strong> Our
-              pieces blend traditional craftsmanship with contemporary
-              aesthetics.
+              <strong className="text-foreground">Craftsmanship:</strong> Every
+              piece is made by skilled hands in our own line under strict
+              quality control.
             </li>
             <li className="list-disc">
-              <strong className="text-foreground">
-                Customer Satisfaction:
-              </strong>{" "}
-              Your experience matters to us, from browsing to delivery and
-              beyond.
+              <strong className="text-foreground">Modern Versatility:</strong>{" "}
+              From classic polos to denim jackets, our designs balance function
+              with fashion.
             </li>
             <li className="list-disc">
-              <strong className="text-foreground">
-                Sustainable Practices:
-              </strong>{" "}
-              We&apos;re committed to responsible sourcing and production.
+              <strong className="text-foreground">Customer Focus:</strong> We
+              listen, adapt, and continuously refine — because your satisfaction
+              defines our success.
             </li>
           </ul>
 
@@ -58,12 +56,9 @@ export default function AboutPage() {
           </h2>
 
           <p className="leading-relaxed">
-            At bobbin, we understand that clothing is more than just
-            fabric—it&apos;s an expression of who you are. That&apos;s why
-            we&apos;ve made it our mission to provide pieces that not only look
-            good but feel incredible to wear. Our collection is designed to take
-            you from casual weekends to special celebrations with confidence and
-            style.
+            Because we make clothes that look good, feel better, and last
+            longer. At Bobbin, you don&apos;t just wear fashion — you wear
+            confidence.
           </p>
 
           <div className="pt-8">

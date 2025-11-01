@@ -1,4 +1,4 @@
-import { Facebook, Instagram, Twitter } from "lucide-react";
+import { Facebook, Instagram } from "lucide-react";
 import Link from "next/link";
 
 export function Footer() {
@@ -80,27 +80,20 @@ export function Footer() {
               Follow Us
             </h4>
             <div className="flex space-x-4">
-              <a
-                href="#"
+              <Link
+                href="https://www.facebook.com/share/16M3qoXigc"
                 className="text-black hover:text-foreground transition-colors"
               >
                 <Facebook className="h-5 w-5" />
                 <span className="sr-only">Facebook</span>
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                href="https://www.instagram.com/bobbin.bd"
                 className="text-black hover:text-foreground transition-colors"
               >
                 <Instagram className="h-5 w-5" />
                 <span className="sr-only">Instagram</span>
-              </a>
-              <a
-                href="#"
-                className="text-black hover:text-foreground transition-colors"
-              >
-                <Twitter className="h-5 w-5" />
-                <span className="sr-only">Twitter</span>
-              </a>
+              </Link>
             </div>
           </div>
         </div>
