@@ -16,39 +16,71 @@ async function getFeaturedProducts(): Promise<Product[]> {
   }
 }
 
+async function getHeroSettings() {
+  try {
+    const response = await apiClient.getHeroSettings();
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching hero settings:", error);
+    return {
+      title: "Elevate Your Style",
+      subtitle:
+        "Discover premium essentials crafted for the modern gentleman. Quality that speaks, comfort that lasts.",
+      primaryBtnText: "Shop Now",
+      primaryBtnLink: "/products",
+      secondaryBtnText: "Learn More",
+      secondaryBtnLink: "/about",
+      backgroundImage: null,
+    };
+  }
+}
+
 export default async function HomePage() {
   const products = await getFeaturedProducts();
+  const heroSettings = await getHeroSettings();
 
   return (
     <div>
       {/* Hero Banner */}
-      <section className="relative bg-gradient-to-r from-bobbinText to-accent py-20 md:py-32">
+      <section
+        className={`relative py-20 md:py-32 ${
+          heroSettings.backgroundImage
+            ? "bg-cover bg-center"
+            : "bg-gradient-to-r from-bobbinText to-accent"
+        }`}
+        style={
+          heroSettings.backgroundImage
+            ? {
+                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${heroSettings.backgroundImage})`,
+              }
+            : undefined
+        }
+      >
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2">
             <div className="text-white">
               <h1 className="mb-4 text-4xl font-bold md:text-5xl lg:text-6xl">
-                Elevate Your Style
+                {heroSettings.title}
               </h1>
               <p className="mb-8 text-lg text-gray-100 md:text-xl">
-                Discover premium essentials crafted for the modern gentleman.
-                Quality that speaks, comfort that lasts.
+                {heroSettings.subtitle}
               </p>
               <div className="flex flex-wrap gap-4">
-                <Link href="/products">
+                <Link href={heroSettings.primaryBtnLink}>
                   <Button
                     size="lg"
                     className="bg-white text-bobbinText hover:bg-gray-100"
                   >
-                    Shop Now
+                    {heroSettings.primaryBtnText}
                   </Button>
                 </Link>
-                <Link href="/about">
+                <Link href={heroSettings.secondaryBtnLink}>
                   <Button
                     size="lg"
                     variant="outline"
                     className="border-white text-black hover:text-white hover:bg-white/10"
                   >
-                    Learn More
+                    {heroSettings.secondaryBtnText}
                   </Button>
                 </Link>
               </div>

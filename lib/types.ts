@@ -55,6 +55,20 @@ export type User = {
   role: "super_admin" | "admin" | "user";
 };
 
+export type HeroSettings = {
+  id: string;
+  title: string;
+  subtitle: string;
+  primaryBtnText: string;
+  primaryBtnLink: string;
+  secondaryBtnText: string;
+  secondaryBtnLink: string;
+  backgroundImage: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
 // API Response types
 export type ApiResponse<T> = {
   success: boolean;

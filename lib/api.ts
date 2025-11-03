@@ -211,6 +211,30 @@ class ApiClient {
       body: JSON.stringify(orderData),
     });
   }
+
+  // Hero Settings endpoints
+  async getHeroSettings() {
+    return this.publicRequest("/hero");
+  }
+
+  async updateHeroSettings(
+    id: string,
+    heroData: {
+      title?: string;
+      subtitle?: string;
+      primaryBtnText?: string;
+      primaryBtnLink?: string;
+      secondaryBtnText?: string;
+      secondaryBtnLink?: string;
+      backgroundImage?: string;
+      isActive?: boolean;
+    }
+  ) {
+    return this.request(`/hero/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(heroData),
+    });
+  }
 }
 
 export const apiClient = new ApiClient();
