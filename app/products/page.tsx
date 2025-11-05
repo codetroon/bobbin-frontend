@@ -9,6 +9,13 @@ export const revalidate = 60;
 async function getAllProducts(): Promise<Product[]> {
   try {
     const response = await apiClient.getPublicProducts({ limit: 1000 });
+
+    // Handle null response from API client (server-side fallback)
+    if (!response) {
+      console.warn("Products API not available, returning empty array");
+      return [];
+    }
+
     return response.data || [];
   } catch (error) {
     console.error("Error fetching products:", error);
@@ -19,6 +26,13 @@ async function getAllProducts(): Promise<Product[]> {
 async function getAllCategories(): Promise<Category[]> {
   try {
     const response = await apiClient.getPublicCategories();
+
+    // Handle null response from API client (server-side fallback)
+    if (!response) {
+      console.warn("Categories API not available, returning empty array");
+      return [];
+    }
+
     return response.data || [];
   } catch (error) {
     console.error("Error fetching categories:", error);

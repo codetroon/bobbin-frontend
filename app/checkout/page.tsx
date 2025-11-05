@@ -52,29 +52,48 @@ export default function CheckoutPage() {
       // Note: Backend currently supports single product per order
       // For multiple items, we create separate orders
       const orderPromises = items.map(async (item) => {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/orders`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              customerName: formData.name,
-              address: formData.address,
-              contactNumber: formData.contact,
-              productId: item.productId,
-              totalPrice: item.price * item.quantity,
-              status: "pending",
-            }),
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout for orders
+
+        try {
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1"}/orders`,
+            {
+              method: "POST",
+              signal: controller.signal,
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                customerName: formData.name,
+                address: formData.address,
+                contactNumber: formData.contact,
+                productId: item.productId,
+                totalPrice: item.price * item.quantity,
+                status: "pending",
+              }),
+            }
+          );
+
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(
+              errorData.message || `Failed to create order (${response.status})`
+            );
           }
-        );
 
-        if (!response.ok) {
-          throw new Error("Failed to create order");
+          return response.json();
+        } catch (err) {
+          clearTimeout(timeoutId);
+          if (err instanceof Error && err.name === "AbortError") {
+            throw new Error(
+              "Order request timed out. Please check your connection and try again."
+            );
+          }
+          throw err;
         }
-
-        return response.json();
       });
 
       await Promise.all(orderPromises);
@@ -83,7 +102,11 @@ export default function CheckoutPage() {
       router.push(`/order-success`);
     } catch (error) {
       console.error("Order error:", error);
-      toast.error("An error occurred. Please try again.");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "An error occurred. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

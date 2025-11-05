@@ -10,46 +10,89 @@ class ApiClient {
 
   // Public request without auth
   private async publicRequest(endpoint: string, options: RequestInit = {}) {
-    const config: RequestInit = {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
-    };
+    try {
+      const config: RequestInit = {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          ...options.headers,
+        },
+      };
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-    if (!response.ok) {
-      const error = await response
-        .json()
-        .catch(() => ({ message: "Request failed" }));
-      throw new Error(error.message || "API request failed");
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...config,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const error = await response
+          .json()
+          .catch(() => ({
+            message: `Request failed with status ${response.status}`,
+          }));
+        throw new Error(
+          error.message || `API request failed: ${response.status}`
+        );
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error(`API Error for ${endpoint}:`, error);
+
+      // Don't throw in server-side rendering, return null instead
+      if (typeof window === "undefined") {
+        console.warn(
+          `Server-side API request failed for ${endpoint}, returning null`
+        );
+        return null;
+      }
+
+      throw error;
     }
-
-    return response.json();
   }
 
   private async request(endpoint: string, options: RequestInit = {}) {
-    const token = this.getAuthToken();
+    try {
+      const token = this.getAuthToken();
 
-    const config: RequestInit = {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }),
-        ...options.headers,
-      },
-    };
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+      const config: RequestInit = {
+        ...options,
+        signal: controller.signal,
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+          ...options.headers,
+        },
+      };
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "API request failed");
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const error = await response
+          .json()
+          .catch(() => ({
+            message: `Request failed with status ${response.status}`,
+          }));
+        throw new Error(
+          error.message || `API request failed: ${response.status}`
+        );
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error(`Authenticated API Error for ${endpoint}:`, error);
+      throw error;
     }
-
-    return response.json();
   }
 
   // Auth endpoints

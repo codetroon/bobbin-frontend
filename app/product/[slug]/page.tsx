@@ -11,8 +11,14 @@ export const revalidate = 60;
 export async function generateStaticParams() {
   try {
     const response = await apiClient.getPublicProducts({ limit: 100 });
-    const products = response.data || [];
 
+    // Handle null response from API client (server-side fallback)
+    if (!response) {
+      console.warn("Products API not available during static generation");
+      return [];
+    }
+
+    const products = response.data || [];
     return products.map((product: Product) => ({ slug: product.id })) || [];
   } catch (error) {
     console.error("Error generating static params:", error);
@@ -23,6 +29,13 @@ export async function generateStaticParams() {
 async function getProduct(id: string): Promise<Product | null> {
   try {
     const response = await apiClient.getPublicProduct(id);
+
+    // Handle null response from API client (server-side fallback)
+    if (!response) {
+      console.warn(`Product API not available for id: ${id}`);
+      return null;
+    }
+
     return response.data || null;
   } catch (error) {
     console.error("Error fetching product:", error);
@@ -39,6 +52,13 @@ async function getRelatedProducts(
       categoryId,
       limit: 5,
     });
+
+    // Handle null response from API client (server-side fallback)
+    if (!response) {
+      console.warn("Related products API not available");
+      return [];
+    }
+
     // Filter out current product
     const products = (response.data || []).filter(
       (p: Product) => p.id !== currentId

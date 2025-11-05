@@ -11,6 +11,13 @@ async function getCategoryByName(
   try {
     // Get all categories
     const categoriesResponse = await apiClient.getPublicCategories();
+
+    // Handle null response from API client (server-side fallback)
+    if (!categoriesResponse) {
+      console.warn("Categories API not available");
+      return null;
+    }
+
     const categories = categoriesResponse.data || [];
 
     // Find category by slug (name converted to lowercase with dashes)
@@ -26,6 +33,15 @@ async function getCategoryByName(
       limit: 100,
     });
 
+    // Handle null response from API client
+    if (!productsResponse) {
+      console.warn(`Products API not available for category: ${category.id}`);
+      return {
+        category,
+        products: [],
+      };
+    }
+
     return {
       category,
       products: productsResponse.data || [],
@@ -39,6 +55,13 @@ async function getCategoryByName(
 async function getAllCategories(): Promise<Category[]> {
   try {
     const response = await apiClient.getPublicCategories();
+
+    // Handle null response from API client (server-side fallback)
+    if (!response) {
+      console.warn("Categories API not available for static generation");
+      return [];
+    }
+
     return response.data || [];
   } catch (error) {
     console.error("Error fetching categories:", error);

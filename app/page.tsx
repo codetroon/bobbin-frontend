@@ -9,6 +9,13 @@ export const revalidate = 60;
 async function getFeaturedProducts(): Promise<Product[]> {
   try {
     const response = await apiClient.getPublicProducts({ limit: 8 });
+
+    // Handle null response from API client (server-side fallback)
+    if (!response) {
+      console.warn("API not available, returning empty products array");
+      return [];
+    }
+
     return response.data || [];
   } catch (error) {
     console.error("Error fetching products:", error);
@@ -17,21 +24,30 @@ async function getFeaturedProducts(): Promise<Product[]> {
 }
 
 async function getHeroSettings() {
+  const defaultSettings = {
+    title: "Elevate Your Style",
+    subtitle:
+      "Discover premium essentials crafted for the modern gentleman. Quality that speaks, comfort that lasts.",
+    primaryBtnText: "Shop Now",
+    primaryBtnLink: "/products",
+    secondaryBtnText: "Learn More",
+    secondaryBtnLink: "/about",
+    backgroundImage: null,
+  };
+
   try {
     const response = await apiClient.getHeroSettings();
-    return response.data;
+
+    // Handle null response from API client (server-side fallback)
+    if (!response) {
+      console.warn("Hero settings API not available, using defaults");
+      return defaultSettings;
+    }
+
+    return response.data || defaultSettings;
   } catch (error) {
     console.error("Error fetching hero settings:", error);
-    return {
-      title: "Elevate Your Style",
-      subtitle:
-        "Discover premium essentials crafted for the modern gentleman. Quality that speaks, comfort that lasts.",
-      primaryBtnText: "Shop Now",
-      primaryBtnLink: "/products",
-      secondaryBtnText: "Learn More",
-      secondaryBtnLink: "/about",
-      backgroundImage: null,
-    };
+    return defaultSettings;
   }
 }
 
