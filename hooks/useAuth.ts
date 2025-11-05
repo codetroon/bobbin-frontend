@@ -31,16 +31,17 @@ export const useAuth = create<AuthState>()(
 
       login: async (email: string, password: string) => {
         try {
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ email, password }),
-            }
-          );
+          // Get API URL with fallback
+          const apiUrl =
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+
+          const response = await fetch(`${apiUrl}/auth/login`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, password }),
+          });
 
           const data = await response.json();
 
@@ -63,13 +64,19 @@ export const useAuth = create<AuthState>()(
 
           set(authState);
 
-          // Set cookie for middleware
+          // Set cookie with proper flags for production
           if (typeof window !== "undefined") {
-            document.cookie = `admin-auth=${JSON.stringify({ state: authState })}; path=/; max-age=86400; SameSite=Lax`;
+            const isProduction = window.location.protocol === "https:";
+            const cookieFlags = isProduction
+              ? "path=/; max-age=86400; SameSite=Lax; Secure"
+              : "path=/; max-age=86400; SameSite=Lax";
+
+            document.cookie = `admin-auth=${JSON.stringify({ state: authState })}; ${cookieFlags}`;
           }
 
           return { success: true };
         } catch (error) {
+          console.error("Auth login error:", error);
           return { success: false, error: "Network error. Please try again." };
         }
       },
@@ -81,10 +88,14 @@ export const useAuth = create<AuthState>()(
           isAuthenticated: false,
         });
 
-        // Clear cookie
+        // Clear cookie with proper flags
         if (typeof window !== "undefined") {
-          document.cookie =
-            "admin-auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+          const isProduction = window.location.protocol === "https:";
+          const cookieFlags = isProduction
+            ? "path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure"
+            : "path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+
+          document.cookie = `admin-auth=; ${cookieFlags}`;
         }
       },
 
@@ -97,9 +108,14 @@ export const useAuth = create<AuthState>()(
 
         set(authState);
 
-        // Set cookie for middleware
+        // Set cookie with proper flags for production
         if (typeof window !== "undefined") {
-          document.cookie = `admin-auth=${JSON.stringify({ state: authState })}; path=/; max-age=86400; SameSite=Lax`;
+          const isProduction = window.location.protocol === "https:";
+          const cookieFlags = isProduction
+            ? "path=/; max-age=86400; SameSite=Lax; Secure"
+            : "path=/; max-age=86400; SameSite=Lax";
+
+          document.cookie = `admin-auth=${JSON.stringify({ state: authState })}; ${cookieFlags}`;
         }
       },
     }),

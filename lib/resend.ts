@@ -12,7 +12,7 @@ export const sendEmail = async (
   try {
     const email = await resend.emails.send({
       from,
-      to: "support@bobbin.com.bd",
+      to: process.env.BOBBIN_SUPPORT_EMAIL as string,
       subject,
       html,
     });

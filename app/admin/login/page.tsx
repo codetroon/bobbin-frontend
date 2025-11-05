@@ -53,18 +53,22 @@ export default function AdminLoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email: data.email, password: data.password }),
-        }
-      );
+      // Get API URL with fallback
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+
+      console.log("Login attempt with API URL:", apiUrl);
+
+      const response = await fetch(`${apiUrl}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: data.email, password: data.password }),
+      });
 
       const result = await response.json();
+      console.log("Login response:", result);
 
       if (!response.ok) {
         toast.error(result.message || "Login failed");
@@ -81,7 +85,7 @@ export default function AdminLoginPage() {
         return;
       }
 
-      // Store in localStorage
+      // Store in localStorage and cookies
       if (typeof window !== "undefined") {
         const authState = {
           user,
@@ -89,18 +93,32 @@ export default function AdminLoginPage() {
           isAuthenticated: true,
         };
 
+        // Store in localStorage (for Zustand)
         localStorage.setItem(
           "admin-auth",
           JSON.stringify({ state: authState })
         );
-        document.cookie = `admin-auth=${JSON.stringify({ state: authState })}; path=/; max-age=86400; SameSite=Lax`;
+
+        // Set cookie with proper flags for production
+        const isProduction = window.location.protocol === "https:";
+        const cookieFlags = isProduction
+          ? "path=/; max-age=86400; SameSite=Lax; Secure"
+          : "path=/; max-age=86400; SameSite=Lax";
+
+        document.cookie = `admin-auth=${JSON.stringify({ state: authState })}; ${cookieFlags}`;
+
+        console.log("Auth data stored successfully");
       }
 
       toast.success("Login successful");
 
-      // Small delay to ensure state is saved
+      // Use window.location for more reliable redirect in production
       setTimeout(() => {
-        router.push("/admin/dashboard");
+        if (typeof window !== "undefined") {
+          window.location.href = "/admin/dashboard";
+        } else {
+          router.push("/admin/dashboard");
+        }
       }, 100);
     } catch (error) {
       console.error("Login error:", error);

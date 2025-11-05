@@ -94,7 +94,7 @@ export async function sendContactEmail(formData: {
 
     const { data, error } = await resend.emails.send({
       from: "OrcDev <onboarding@resend.dev>",
-      to: "business.codetroon@gmail.com",
+      to: process.env.BOBBIN_SUPPORT_EMAIL as string,
       subject: `New Customer Inquiry from ${formData.name}`,
       html: emailHtml,
     });
