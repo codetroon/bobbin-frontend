@@ -56,8 +56,9 @@ const UploadExample = () => {
 
   const authenticator = async () => {
     try {
-      // Perform the request to the upload authentication endpoint.
-      const response = await fetch("/api/upload-auth");
+  // Perform the request to the upload authentication endpoint. Add cache-busting
+  // to avoid receiving a cached token in production.
+  const response = await fetch(`/api/upload-auth?ts=${Date.now()}`, { cache: "no-store" });
       if (!response.ok) {
         // If the server response is not successful, extract the error text for debugging.
         const errorText = await response.text();

@@ -50,7 +50,8 @@ export function MultiImageUpload({
 
   const authenticator = async () => {
     try {
-      const response = await fetch("/api/upload-auth");
+  // Add cache-busting and disable cache to ensure a fresh token in production
+  const response = await fetch(`/api/upload-auth?ts=${Date.now()}`, { cache: "no-store" });
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(
