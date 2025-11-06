@@ -11,6 +11,7 @@ import {
   HomeIcon,
   Image as ImageIcon,
   Package,
+  Ruler,
   Settings,
   ShoppingCart,
   Tag,
@@ -33,9 +34,9 @@ const navigation = [
   { name: "Categories", href: "/admin/categories", icon: Tag },
   { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { name: "Sizes", href: "/admin/sizes", icon: Box },
+  { name: "Size Guides", href: "/admin/size-guides", icon: Ruler },
   { name: "Hero", href: "/admin/hero", icon: ImageIcon },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
-  { name: "Users", href: "/admin/users", icon: Users },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 

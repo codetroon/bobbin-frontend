@@ -103,7 +103,7 @@ export async function sendContactEmail(formData: {
       console.error("Error sending email:", error);
       return { success: false, error: error.message };
     }
-
+    console.log(process.env.BOBBIN_SUPPORT_EMAIL);
     return { success: true, data };
   } catch (error) {
     console.error("Error sending email:", error);

@@ -89,7 +89,7 @@ export default function ContactPage() {
                 <div>
                   <h3 className="mb-1 font-semibold">Whatsapp</h3>
                   <Link
-                    href="https://wa.me/01805426663"
+                    href="https://wa.me/+8801805426663"
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
                     Chat with us

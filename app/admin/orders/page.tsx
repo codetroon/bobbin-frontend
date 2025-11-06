@@ -1,6 +1,17 @@
 "use client";
 
 import { OrderInvoice } from "@/components/admin/order-invoice";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -25,7 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { apiClient } from "@/lib/api";
-import { Eye, FileText, Package, RefreshCw, Truck } from "lucide-react";
+import { Eye, FileText, Package, RefreshCw, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -114,6 +125,17 @@ export default function OrdersPage() {
     } catch (error: any) {
       console.error("Error updating order status:", error);
       toast.error(error.message || "Failed to update order status");
+    }
+  };
+
+  const handleDeleteOrder = async (orderId: string) => {
+    try {
+      await apiClient.deleteOrder(orderId);
+      toast.success("Order deleted successfully");
+      fetchOrders();
+    } catch (error: any) {
+      console.error("Error deleting order:", error);
+      toast.error(error.message || "Failed to delete order");
     }
   };
 
@@ -346,16 +368,44 @@ export default function OrdersPage() {
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          toast.info("Tracking info will be implemented");
-                        }}
-                        title="Track Order"
-                      >
-                        <Truck className="h-4 w-4" />
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            title="Delete Order"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Order</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete this order? This
+                              action cannot be undone.
+                              <br />
+                              <br />
+                              <strong>Order ID:</strong> #{order.id.slice(-8)}
+                              <br />
+                              <strong>Customer:</strong> {order.customerName}
+                              <br />
+                              <strong>Product:</strong>{" "}
+                              {order.products?.name || "Unknown Product"}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteOrder(order.id)}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              Delete Order
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </TableCell>
                 </TableRow>

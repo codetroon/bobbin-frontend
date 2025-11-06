@@ -30,11 +30,9 @@ class ApiClient {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        const error = await response
-          .json()
-          .catch(() => ({
-            message: `Request failed with status ${response.status}`,
-          }));
+        const error = await response.json().catch(() => ({
+          message: `Request failed with status ${response.status}`,
+        }));
         throw new Error(
           error.message || `API request failed: ${response.status}`
         );
@@ -78,11 +76,9 @@ class ApiClient {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        const error = await response
-          .json()
-          .catch(() => ({
-            message: `Request failed with status ${response.status}`,
-          }));
+        const error = await response.json().catch(() => ({
+          message: `Request failed with status ${response.status}`,
+        }));
         throw new Error(
           error.message || `API request failed: ${response.status}`
         );
@@ -210,6 +206,12 @@ class ApiClient {
     });
   }
 
+  async deleteOrder(id: string) {
+    return this.request(`/orders/${id}`, {
+      method: "DELETE",
+    });
+  }
+
   // Size endpoints
   async getSizes(productId?: string) {
     const params = productId ? `?productId=${productId}` : "";
@@ -276,6 +278,48 @@ class ApiClient {
     return this.request(`/hero/${id}`, {
       method: "PATCH",
       body: JSON.stringify(heroData),
+    });
+  }
+
+  // Size Guide endpoints
+  async getSizeGuides() {
+    return this.request("/size-guides");
+  }
+
+  async getSizeGuideByCategory(categoryId: string) {
+    return this.publicRequest(`/size-guides/category/${categoryId}`);
+  }
+
+  async createSizeGuide(sizeGuideData: {
+    name: string;
+    imageUrl: string;
+    categoryId: string;
+    isActive?: boolean;
+  }) {
+    return this.request("/size-guides", {
+      method: "POST",
+      body: JSON.stringify(sizeGuideData),
+    });
+  }
+
+  async updateSizeGuide(
+    id: string,
+    sizeGuideData: {
+      name?: string;
+      imageUrl?: string;
+      categoryId?: string;
+      isActive?: boolean;
+    }
+  ) {
+    return this.request(`/size-guides/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(sizeGuideData),
+    });
+  }
+
+  async deleteSizeGuide(id: string) {
+    return this.request(`/size-guides/${id}`, {
+      method: "DELETE",
     });
   }
 }
