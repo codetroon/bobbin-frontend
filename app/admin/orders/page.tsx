@@ -1,5 +1,6 @@
 "use client";
 
+import { OrderDetailsDialog } from "@/components/admin/order-details-dialog";
 import { OrderInvoice } from "@/components/admin/order-invoice";
 import {
   AlertDialog,
@@ -46,6 +47,8 @@ interface Order {
   address: string;
   contactNumber: string;
   productId: string;
+  size: string;
+  quantity: number;
   totalPrice: number;
   status: string;
   createdAt: string;
@@ -56,6 +59,9 @@ interface Order {
     productCode: string;
     price: number;
     description?: string;
+    images?: string[];
+    materials?: string[];
+    colors?: string[];
     category?: {
       id: string;
       name: string;
@@ -93,6 +99,7 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -151,6 +158,16 @@ export default function OrdersPage() {
 
   const handleCloseInvoice = () => {
     setIsInvoiceOpen(false);
+    setSelectedOrder(null);
+  };
+
+  const handleViewDetails = (order: Order) => {
+    setSelectedOrder(order);
+    setIsDetailsOpen(true);
+  };
+
+  const handleCloseDetails = () => {
+    setIsDetailsOpen(false);
     setSelectedOrder(null);
   };
 
@@ -279,6 +296,8 @@ export default function OrdersPage() {
                 <TableHead>Order ID</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Product</TableHead>
+                <TableHead>Size</TableHead>
+                <TableHead>Qty</TableHead>
                 <TableHead>Contact</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead>Status</TableHead>
@@ -309,6 +328,12 @@ export default function OrdersPage() {
                         {order.products?.productCode || "N/A"}
                       </p>
                     </div>
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {order.size || "N/A"}
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {order.quantity || 1}
                   </TableCell>
                   <TableCell className="text-sm">
                     {order.contactNumber}
@@ -361,9 +386,7 @@ export default function OrdersPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => {
-                          toast.info("Order details will be implemented");
-                        }}
+                        onClick={() => handleViewDetails(order)}
                         title="View Details"
                       >
                         <Eye className="h-4 w-4" />
@@ -430,6 +453,13 @@ export default function OrdersPage() {
         order={selectedOrder}
         isOpen={isInvoiceOpen}
         onClose={handleCloseInvoice}
+      />
+
+      {/* Order Details Dialog */}
+      <OrderDetailsDialog
+        order={selectedOrder}
+        isOpen={isDetailsOpen}
+        onClose={handleCloseDetails}
       />
     </div>
   );

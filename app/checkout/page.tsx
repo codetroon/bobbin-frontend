@@ -69,6 +69,8 @@ export default function CheckoutPage() {
                 address: formData.address,
                 contactNumber: formData.contact,
                 productId: item.productId,
+                size: item.size,
+                quantity: item.quantity,
                 totalPrice: item.price * item.quantity,
                 status: "pending",
               }),

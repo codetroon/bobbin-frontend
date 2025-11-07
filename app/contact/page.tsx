@@ -1,11 +1,11 @@
 "use client";
 
-import { sendContactEmail } from "@/app/actions/send-email";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { apiClient } from "@/lib/api";
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -30,18 +30,16 @@ export default function ContactPage() {
     setLoading(true);
 
     try {
-      const result = await sendContactEmail(formData);
+      await apiClient.createContactMessage({
+        name: formData.name,
+        email: formData.contact,
+        message: formData.message,
+      });
 
-      if (result.success) {
-        toast.success("Message sent successfully! We'll get back to you soon.");
-        setFormData({ name: "", contact: "", message: "" });
-      } else {
-        toast.error(
-          result.error || "Failed to send message. Please try again."
-        );
-      }
+      toast.success("Message sent successfully! We'll get back to you soon.");
+      setFormData({ name: "", contact: "", message: "" });
     } catch (error) {
-      console.error("Error sending email:", error);
+      console.error("Error sending message:", error);
       toast.error("Failed to send message. Please try again.");
     } finally {
       setLoading(false);
@@ -108,7 +106,7 @@ export default function ContactPage() {
                     href="mailto:support@bobbin.com.bd"
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    support@bobbin.com.bd
+                    bobbinctg@gmail.com
                   </Link>
                 </div>
               </CardContent>

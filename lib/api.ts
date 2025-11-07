@@ -322,6 +322,34 @@ class ApiClient {
       method: "DELETE",
     });
   }
+
+  // Contact Message endpoints
+  async createContactMessage(contactData: {
+    name: string;
+    email: string;
+    message: string;
+  }) {
+    return this.publicRequest("/contact-messages", {
+      method: "POST",
+      body: JSON.stringify(contactData),
+    });
+  }
+
+  async getContactMessages() {
+    return this.request("/contact-messages");
+  }
+
+  async markContactMessageAsRead(id: string) {
+    return this.request(`/contact-messages/${id}`, {
+      method: "PATCH",
+    });
+  }
+
+  async deleteContactMessage(id: string) {
+    return this.request(`/contact-messages/${id}`, {
+      method: "DELETE",
+    });
+  }
 }
 
 export const apiClient = new ApiClient();
