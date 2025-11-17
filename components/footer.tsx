@@ -99,7 +99,10 @@ export function Footer() {
         </div>
 
         <div className="mt-8 border-t pt-8 text-center text-sm text-black">
-          <p>&copy; {new Date().getFullYear()} bobbin. All rights reserved.</p>
+          <p>
+            &copy; {new Date().getFullYear()} bobbin.com.bd, All rights
+            reserved.
+          </p>
         </div>
       </div>
     </footer>

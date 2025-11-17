@@ -329,7 +329,7 @@ class ApiClient {
     email: string;
     message: string;
   }) {
-    return this.publicRequest("/contact-messages", {
+    return this.publicRequest("/contact-messages/add", {
       method: "POST",
       body: JSON.stringify(contactData),
     });
