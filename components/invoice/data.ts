@@ -5,6 +5,12 @@ export let companyInfo = {
   addressLines: [""],
 };
 
+export const footerInfo = {
+  address:
+    "13/52, 1st floor, B-block, Bipani Bitan-2, New Market, Chittagong, Bangladesh",
+  websites: ["bobbin.com.bd", "bobbinapparels.com"],
+};
+
 export let invoiceMeta = {
   number: "INV-2025-019",
   date: "19 October 2025",

@@ -68,4 +68,17 @@ export const styles = StyleSheet.create({
     marginTop: 30,
     fontSize: 11,
   },
+  footer: {
+    position: "absolute",
+    bottom: 30,
+    left: 40,
+    right: 40,
+    textAlign: "center",
+    paddingTop: 10,
+  },
+  footerText: {
+    fontSize: 12,
+    color: "#b58f33",
+    marginBottom: 3,
+  },
 });

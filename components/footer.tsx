@@ -8,11 +8,7 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div>
             <h3 className="mb-4 text-lg font-bold text-bobbinText">bobbin</h3>
-            <p className="text-sm text-black">
-              Premium fashion essentials for the modern gentleman.
-            </p>
           </div>
-
           <div>
             <h4 className="mb-4 text-sm font-semibold text-bobbinText">Shop</h4>
             <ul className="space-y-2 text-sm">
