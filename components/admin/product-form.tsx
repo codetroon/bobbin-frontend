@@ -176,6 +176,47 @@ export function ProductForm({
   const colors = form.watch("colors");
   const images = form.watch("images");
 
+  // Local textarea string for materials so we can keep bullets on enter and
+  // sync with the form array value.
+  const [materialsText, setMaterialsText] = useState(() =>
+    (form.getValues("materials") || []).map((m: string) => `• ${m}`).join("\n")
+  );
+
+  useEffect(() => {
+    // keep the textarea in sync when the form materials change externally
+    setMaterialsText((materials || []).map((m: string) => `• ${m}`).join("\n"));
+  }, [materials]);
+
+  const insertBulletAtCursor = (
+    ta: HTMLTextAreaElement,
+    value: string,
+    setValue: (v: string) => void
+  ) => {
+    if (!ta) return;
+    // use the actual textarea value to avoid stale state
+    const current = ta.value ?? "";
+    const start = ta.selectionStart ?? current.length;
+    const end = ta.selectionEnd ?? start;
+    const newValue = current.slice(0, start) + "\n• " + current.slice(end);
+    setValue(newValue);
+
+    // move cursor after inserted bullet
+    requestAnimationFrame(() => {
+      try {
+        ta.focus();
+        const pos = start + 3; // "\n• " length
+        ta.selectionStart = ta.selectionEnd = pos;
+      } catch (err) {
+        // ignore if element is not available
+      }
+    });
+  };
+
+  const ensureStartsWithBullet = (value: string) => {
+    if (!value) return "• ";
+    return value.startsWith("• ") ? value : `• ${value}`;
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -300,7 +341,33 @@ export function ProductForm({
                   placeholder="Detailed information about the product..."
                   className="resize-none"
                   rows={4}
-                  {...field}
+                  value={field.value ?? ""}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  onFocus={(e) => {
+                    const ta = e.currentTarget as HTMLTextAreaElement;
+                    if (!field.value) {
+                      const v = "• ";
+                      field.onChange(v);
+                      // put cursor at end
+                      requestAnimationFrame(() => {
+                        try {
+                          ta.focus();
+                          ta.selectionStart = ta.selectionEnd = ta.value.length;
+                        } catch (err) {
+                          /* ignore */
+                        }
+                      });
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      const ta = e.currentTarget as HTMLTextAreaElement;
+                      insertBulletAtCursor(ta, field.value ?? "", (v) =>
+                        field.onChange(v)
+                      );
+                    }
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -311,38 +378,88 @@ export function ProductForm({
         {/* Materials */}
         <div className="space-y-3">
           <FormLabel>Materials</FormLabel>
-          <div className="flex gap-2">
-            <Input
-              placeholder="Add material (e.g., Cotton, Polyester)"
-              value={newMaterial}
-              onChange={(e) => setNewMaterial(e.target.value)}
-              onKeyPress={(e) =>
-                e.key === "Enter" && (e.preventDefault(), addMaterial())
-              }
-            />
-            <Button type="button" onClick={addMaterial} size="sm">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-          {materials.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {materials.map((material, index) => (
-                <div
-                  key={index}
-                  className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-                >
-                  {material}
-                  <button
-                    type="button"
-                    onClick={() => removeMaterial(index)}
-                    className="ml-1 hover:text-blue-900"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+          <FormField
+            control={form.control}
+            name="materials"
+            render={({ field }) => (
+              <div>
+                <Textarea
+                  placeholder="• Cotton\n• Polyester"
+                  className="resize-none"
+                  rows={4}
+                  value={materialsText}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setMaterialsText(v);
+                    const parsed = v
+                      .split("\n")
+                      .map((l) => l.replace(/^\s*•\s*/, "").trim())
+                      .filter(Boolean);
+                    field.onChange(parsed);
+                    form.setValue("materials", parsed);
+                  }}
+                  onFocus={(e) => {
+                    const ta = e.currentTarget as HTMLTextAreaElement;
+                    if (!materialsText) {
+                      const v = "• ";
+                      setMaterialsText(v);
+                      field.onChange([]);
+                      requestAnimationFrame(() => {
+                        try {
+                          ta.focus();
+                          ta.selectionStart = ta.selectionEnd = ta.value.length;
+                        } catch (err) {
+                          /* ignore */
+                        }
+                      });
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      const ta = e.currentTarget as HTMLTextAreaElement;
+                      insertBulletAtCursor(ta, materialsText, (v) =>
+                        setMaterialsText(v)
+                      );
+                      // also sync parsed array to form using the textarea value (safe reference)
+                      requestAnimationFrame(() => {
+                        try {
+                          const parsed = ta.value
+                            .split("\n")
+                            .map((l) => l.replace(/^\s*•\s*/, "").trim())
+                            .filter(Boolean);
+                          field.onChange(parsed);
+                          form.setValue("materials", parsed);
+                        } catch (err) {
+                          /* ignore */
+                        }
+                      });
+                    }
+                  }}
+                />
+
+                {materials && materials.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {materials.map((material: string, index: number) => (
+                      <div
+                        key={index}
+                        className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                      >
+                        {material}
+                        <button
+                          type="button"
+                          onClick={() => removeMaterial(index)}
+                          className="ml-1 hover:text-blue-900"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          />
         </div>
 
         {/* Colors */}

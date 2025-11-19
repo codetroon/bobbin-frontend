@@ -12,10 +12,22 @@ export function ProductDetailsTabs({ product }: ProductDetailsTabsProps) {
   const productDetails = product.details || "";
   const productMaterials = product.materials || [];
 
-  // Split details by "-" to create bullet points
+  // Parse details into lines for bullets. Support several formats:
+  // - Newline-separated lines (optionally starting with "• ")
+  // - Dash-separated lines (legacy format: "- Item - Item")
   const details: string[] =
     productDetails && typeof productDetails === "string"
-      ? productDetails.split("-").filter((item: string) => item.trim() !== "")
+      ? // prefer newline-separated or bullet-prefixed content
+        productDetails.includes("\n") || productDetails.includes("•")
+        ? productDetails
+            .split(/\r?\n/)
+            .map((l) => l.replace(/^\s*•\s*/, "").trim())
+            .filter((item) => item !== "")
+        : // fallback to dash-separated
+          productDetails
+            .split("-")
+            .map((l) => l.trim())
+            .filter((item) => item !== "")
       : [];
 
   return (

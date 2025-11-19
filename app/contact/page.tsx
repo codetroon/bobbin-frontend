@@ -185,7 +185,7 @@ export default function ContactPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="contact">Email or Phone</Label>
+                    <Label htmlFor="contact">Email</Label>
                     <Input
                       id="contact"
                       value={formData.contact}
