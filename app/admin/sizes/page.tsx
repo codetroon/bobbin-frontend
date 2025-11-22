@@ -80,6 +80,10 @@ export default function SizesPage() {
   const [sizes, setSizes] = useState<Size[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSize, setEditingSize] = useState<Size | null>(null);
 
@@ -95,7 +99,8 @@ export default function SizesPage() {
   useEffect(() => {
     fetchSizes();
     fetchProducts();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, limit]);
 
   useEffect(() => {
     if (editingSize) {
@@ -115,8 +120,58 @@ export default function SizesPage() {
 
   const fetchSizes = async () => {
     try {
-      const response = await apiClient.getSizes();
-      setSizes(response.data || []);
+      setIsLoading(true);
+      const response = await apiClient.getSizes({ page, limit });
+
+      // Response shape can vary. Handle common shapes:
+      // 1. { data: { data: Size[], meta: { total, page, limit, totalPages } } }
+      // 2. { data: Size[] }
+      let sizesData: Size[] = [];
+      let meta: any = null;
+
+      if (!response) {
+        sizesData = [];
+      } else if (response.data?.data) {
+        // shape: { data: { data: [], meta: {} } }
+        sizesData = response.data.data;
+        meta = response.data.meta || response.meta;
+      } else if (Array.isArray(response.data)) {
+        // shape: { data: [] }
+        sizesData = response.data;
+        meta = response.meta || response.data?.meta;
+      } else if (response?.data) {
+        // fallback if data is present but not in the expected place
+        sizesData = response.data;
+        meta = response.meta || response.data?.meta;
+      } else {
+        // fallback to top-level array or meta
+        sizesData = response || [];
+        meta = response?.meta || null;
+      }
+
+      // If requested page returned empty but there are previous pages, go back one page
+      if (sizesData.length === 0 && page > 1) {
+        setPage((p) => Math.max(1, p - 1));
+        return;
+      }
+
+      setSizes(sizesData || []);
+
+      const computedTotal =
+        meta?.total ||
+        meta?.totalDocs ||
+        meta?.count ||
+        meta?.itemsCount ||
+        sizesData.length;
+      if (meta) {
+        setTotal(computedTotal);
+        setTotalPages(
+          meta.totalPages || Math.max(1, Math.ceil(computedTotal / limit))
+        );
+      } else {
+        setTotal(sizesData.length);
+        setTotalPages(1);
+      }
     } catch (error) {
       toast.error("Failed to fetch sizes");
     } finally {
@@ -161,6 +216,7 @@ export default function SizesPage() {
     try {
       await apiClient.deleteSize(id);
       toast.success("Size deleted successfully");
+      // refetch after delete; fetchSizes will adjust page if needed
       fetchSizes();
     } catch (error) {
       toast.error("Failed to delete size");
@@ -350,6 +406,51 @@ export default function SizesPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-gray-600">
+          Showing page {page} of {totalPages} ({total} items)
+        </div>
+        <div className="flex items-center space-x-2">
+          <select
+            value={limit}
+            onChange={(e) => {
+              setLimit(parseInt(e.target.value, 10));
+              setPage(1);
+            }}
+            className="rounded-md border px-2 py-1 text-sm"
+          >
+            <option value={10}>10 / page</option>
+            <option value={20}>20 / page</option>
+            <option value={50}>50 / page</option>
+          </select>
+
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              Prev
+            </Button>
+            <Button
+              variant={page < totalPages ? undefined : "outline"}
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+              className={
+                page < totalPages
+                  ? "bg-accent text-white hover:bg-accent/90"
+                  : ""
+              }
+            >
+              Next
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Sizes Table */}

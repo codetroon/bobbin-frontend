@@ -51,6 +51,10 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isSizeDialogOpen, setIsSizeDialogOpen] = useState(false);
@@ -59,20 +63,58 @@ export default function ProductsPage() {
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, limit]);
 
   const fetchProducts = async () => {
     try {
       setIsLoading(true);
-      const response = await apiClient.getProducts({ limit: 100 });
-      console.log("Products response:", response);
+      const response = await apiClient.getProducts({ page, limit });
 
-      // Backend returns { success, message, data: { meta, data } }
-      // So products are at response.data.data
-      const productsData = response?.data || [];
-      console.log("Products data:", productsData);
+      let productsData: Product[] = [];
+      let meta: any = null;
+
+      if (!response) {
+        productsData = [];
+      } else if (response.data?.data) {
+        // shape: { data: { data: [], meta: {} } }
+        productsData = response.data.data;
+        meta = response.data.meta || response.meta;
+      } else if (Array.isArray(response.data)) {
+        // shape: { data: [] }
+        productsData = response.data;
+        meta = response.meta || response.data?.meta;
+      } else if (response?.data) {
+        productsData = response.data;
+        meta = response.meta || response.data?.meta;
+      } else {
+        productsData = response || [];
+        meta = response?.meta || null;
+      }
+
+      // If page returned empty but previous page exists, go back a page
+      if (productsData.length === 0 && page > 1) {
+        setPage((p) => Math.max(1, p - 1));
+        return;
+      }
 
       setProducts(productsData);
+
+      const computedTotal =
+        meta?.total ||
+        meta?.totalDocs ||
+        meta?.count ||
+        meta?.itemsCount ||
+        productsData.length;
+      if (meta) {
+        setTotal(computedTotal);
+        setTotalPages(
+          meta.totalPages || Math.max(1, Math.ceil(computedTotal / limit))
+        );
+      } else {
+        setTotal(productsData.length);
+        setTotalPages(1);
+      }
     } catch (error: any) {
       console.error("Error fetching products:", error);
       toast.error(error.message || "Failed to fetch products");
@@ -203,6 +245,51 @@ export default function ProductsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Pagination Controls */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-gray-600">
+          Showing page {page} of {totalPages} ({total} items)
+        </div>
+        <div className="flex items-center space-x-2">
+          <select
+            value={limit}
+            onChange={(e) => {
+              setLimit(parseInt(e.target.value, 10));
+              setPage(1);
+            }}
+            className="rounded-md border px-2 py-1 text-sm"
+          >
+            <option value={10}>10 / page</option>
+            <option value={20}>20 / page</option>
+            <option value={50}>50 / page</option>
+          </select>
+
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              Prev
+            </Button>
+            <Button
+              variant={page < totalPages ? undefined : "outline"}
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+              className={
+                page < totalPages
+                  ? "bg-accent text-white hover:bg-accent/90"
+                  : ""
+              }
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      </div>
 
       {/* Products Table */}
       <Card>

@@ -29,8 +29,27 @@ export function SizeManager({ productId }: SizeManagerProps) {
   const fetchSizes = async () => {
     try {
       setIsLoading(true);
-      const response = await apiClient.getSizes(productId);
-      setSizes(response.data || []);
+      const response = await apiClient.getSizes({ productId });
+      let sizesData: Size[] = [];
+      let meta: any = null;
+
+      if (!response) {
+        sizesData = [];
+      } else if (response.data?.data) {
+        sizesData = response.data.data;
+        meta = response.data.meta || response.meta;
+      } else if (Array.isArray(response.data)) {
+        sizesData = response.data;
+        meta = response.meta || response.data?.meta;
+      } else if (response?.data) {
+        sizesData = response.data;
+        meta = response.meta || response.data?.meta;
+      } else {
+        sizesData = response || [];
+        meta = response?.meta || null;
+      }
+
+      setSizes(sizesData);
     } catch (error) {
       console.error("Error fetching sizes:", error);
       toast.error("Failed to fetch sizes");
